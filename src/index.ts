@@ -75,7 +75,8 @@ async function getValidAccessToken(env: Env): Promise<string> {
     });
 
     if (!refreshResponse.ok) {
-        throw new Error(`Failed to refresh Strava token: ${refreshResponse.status}`);
+        const text = await refreshResponse.text();
+        throw new Error(`Failed to refresh Strava token: ${refreshResponse.status} - ${text}`);
     }
 
     const tokenData = await refreshResponse.json();
