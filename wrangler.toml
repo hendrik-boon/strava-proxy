@@ -5,3 +5,13 @@ compatibility_date = "2026-01-01"
 [[kv_namespaces]]
 binding = "STRAVA_TOKEN_CACHE"
 id = "76607b084fe143089ee590124b677a30"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true

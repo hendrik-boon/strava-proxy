@@ -34,3 +34,17 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
+
+      - name: Set Strava Secrets
+        run: |
+          echo "Setting STRAVA_CLIENT_ID..."
+          echo "${{ secrets.STRAVA_CLIENT_ID }}" | wrangler secret put STRAVA_CLIENT_ID
+
+          echo "Setting STRAVA_CLIENT_SECRET..."
+          echo "${{ secrets.STRAVA_CLIENT_SECRET }}" | wrangler secret put STRAVA_CLIENT_SECRET
+
+          echo "Setting STRAVA_REFRESH_TOKEN..."
+          echo "${{ secrets.STRAVA_REFRESH_TOKEN }}" | wrangler secret put STRAVA_REFRESH_TOKEN
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
