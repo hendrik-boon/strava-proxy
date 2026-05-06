@@ -2,10 +2,9 @@ export interface Env {
     STRAVA_CLIENT_ID: string;
     STRAVA_CLIENT_SECRET: string;
     STRAVA_REFRESH_TOKEN: string;
+    STRAVA_ATHLETE_ID: string;
     STRAVA_TOKEN_CACHE: KVNamespace;
 }
-
-const ATHLETE_ID = '74736765';
 
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
@@ -24,7 +23,7 @@ export default {
 
         try {
             if (path === '/strava/stats') {
-                return await handleStravaStats(request, env, corsHeaders);
+                return await handleStravaStats(env, corsHeaders);
             }
 
             if (path === '/strava/activities') {
@@ -56,12 +55,12 @@ async function getValidAccessToken(env: Env): Promise<string> {
 
     const now = Math.floor(Date.now() / 1000);
 
-    // Use cached token if still valid
     if (cachedToken && cachedExpiry && parseInt(cachedExpiry) > now) {
+        console.log('Using cached Strava token');
         return cachedToken;
     }
 
-    console.log('Strava access token expired or missing. Refreshing...');
+    console.log('Refreshing Strava access token...');
 
     const refreshResponse = await fetch('https://www.strava.com/oauth/token', {
         method: 'POST',
@@ -75,8 +74,8 @@ async function getValidAccessToken(env: Env): Promise<string> {
     });
 
     if (!refreshResponse.ok) {
-        const text = await refreshResponse.text();
-        throw new Error(`Failed to refresh Strava token: ${refreshResponse.status} - ${text}`);
+        const errorText = await refreshResponse.text();
+        throw new Error(`Failed to refresh Strava token: ${refreshResponse.status} - ${errorText}`);
     }
 
     const tokenData = await refreshResponse.json();
@@ -87,19 +86,19 @@ async function getValidAccessToken(env: Env): Promise<string> {
 
     const expiresAt = Math.floor(Date.now() / 1000) + tokenData.expires_in;
 
-    // Store new token and expiry
     await env.STRAVA_TOKEN_CACHE.put(TOKEN_KEY, tokenData.access_token);
     await env.STRAVA_TOKEN_CACHE.put(EXPIRY_KEY, expiresAt.toString());
 
+    console.log('Strava token refreshed successfully');
     return tokenData.access_token;
 }
 
 // ==================== HANDLERS ====================
 
-async function handleStravaStats(request: Request, env: Env, corsHeaders: Record<string, string>) {
+async function handleStravaStats(env: Env, corsHeaders: Record<string, string>) {
     const accessToken = await getValidAccessToken(env);
 
-    const response = await fetch(`https://www.strava.com/api/v3/athletes/${ATHLETE_ID}/stats`, {
+    const response = await fetch(`https://www.strava.com/api/v3/athletes/${env.STRAVA_ATHLETE_ID}/stats`, {
         headers: { Authorization: `Bearer ${accessToken}` },
     });
 
